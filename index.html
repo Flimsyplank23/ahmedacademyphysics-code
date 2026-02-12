@@ -21,95 +21,117 @@
             overflow-x: hidden;
             width: 100%;
         }
-            body {
-                background: var(--theme-black);
-                color: #e0e0e0;
-                font-family: 'Rajdhani', sans-serif;
-                overflow-x: hidden;
-                width: 100%;
-            }
-            body::before {
-                content: " ";
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(rgba(18,16,16,0) 50%,rgba(0,0,0,0.25) 50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06));
-                z-index: 50;
-                background-size: 100% 2px, 3px 100%;
-                pointer-events: none;
-            }
-            .font-orbitron { font-family: 'Orbitron', sans-serif; }
-            header {
-                background: linear-gradient(90deg, var(--theme-red) 0%, #8b0000 100%);
-                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-                border-bottom: 2px solid #fff;
-                width: 100%;
-            }
-            .topic-card {
-                background: var(--theme-dark);
-                border: 1px solid #333;
-                transition: 0.3s;
-                cursor: pointer;
-                position: relative;
-                overflow: hidden;
-                z-index: 60;
-                white-space: nowrap;
-                flex-grow: 1;
-                text-align: center;
-            }
-            .topic-card:hover {
-                border-color: var(--theme-red);
-                transform: translateY(-2px);
-                box-shadow: 0 0 15px rgba(255,0,60,0.3);
-            }
-            .topic-card.active {
-                border-bottom: 3px solid var(--theme-red);
-                background: #1a1a1a;
-                color: var(--theme-red);
-            }
-            .slide-embed-container {
-                position: relative;
-                padding-bottom: 56.25%;
-                height: 0;
-                overflow: hidden;
-                border: 1px solid #444;
-                background: #000;
-                z-index: 40;
-                width: 100%;
-            }
-            .slide-embed-container iframe {
-                position: absolute;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-            }
-            #question-modal {
-                backdrop-filter: blur(5px);
-                background: rgba(0,0,0,0.85);
-            }
-            .mcq-option {
-                transition: all 0.2s;
-                cursor: pointer;
-                text-align: left;
-            }
-            .mcq-option:hover {
-                background: rgba(0,243,255,0.1);
-                border-color: var(--theme-cyan);
-            }
-            .mcq-correct {
-                background: rgba(34,197,94,0.2) !important;
-                border-color: #22c55e !important;
-                color: #4ade80 !important;
-            }
-            .mcq-wrong {
-                background: rgba(239,68,68,0.2) !important;
-                border-color: #ef4444 !important;
-                color: #f87171 !important;
-                opacity: 0.6;
-            }
-            ::-webkit-scrollbar { width: 6px; height: 6px; }
-            ::-webkit-scrollbar-track { background: #050505; }
-            ::-webkit-scrollbar-thumb { background: var(--theme-red); }
-        </style>
+
+        /* CRT SCANLINE EFFECT */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 50;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* HEADER - FULL WIDTH */
+        header {
+            background: linear-gradient(90deg, var(--theme-red) 0%, #8b0000 100%);
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            border-bottom: 2px solid white;
+            width: 100%;
+        }
+
+        /* NAV & CARDS */
+        .topic-card {
+            background: var(--theme-dark);
+            border: 1px solid #333;
+            transition: 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            z-index: 60;
+            white-space: nowrap;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .topic-card:hover {
+            border-color: var(--theme-red);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+        }
+
+        .topic-card.active {
+            border-bottom: 3px solid var(--theme-red);
+            background: #1a1a1a;
+            color: var(--theme-red);
+        }
+
+        /* EMBEDS - RESPONSIVE 16:9 */
+        .slide-embed-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border: 1px solid #444;
+            background: #000;
+            z-index: 40;
+            width: 100%;
+        }
+        .slide-embed-container iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        /* MODAL STYLES */
+        #question-modal {
+            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.85);
+        }
+
+        /* MCQ ANSWER BUTTONS */
+        .mcq-option {
+            transition: all 0.2s;
+            cursor: pointer;
+            text-align: left;
+        }
+        .mcq-option:hover {
+            background-color: rgba(0, 243, 255, 0.1);
+            border-color: var(--theme-cyan);
+        }
+        .mcq-correct {
+            background-color: rgba(34, 197, 94, 0.2) !important;
+            border-color: #22c55e !important;
+            color: #4ade80 !important;
+        }
+        .mcq-wrong {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+            border-color: #ef4444 !important;
+            color: #f87171 !important;
+            opacity: 0.6;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: var(--theme-red); }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col w-full">
+
+<audio id="ui-click-sound" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
+
+<header class="p-6 sticky top-0 z-50 shadow-lg w-full">
+    <div class="w-full flex flex-col md:flex-row justify-between items-center px-4">
+        <h1 class="text-2xl md:text-4xl font-black tracking-tighter font-orbitron text-white text-center md:text-left">AHMED ACADEMY - PHYSICS</h1>
+        <div class="text-xs font-mono text-white opacity-80 mt-2 md:mt-0 bg-black/20 px-2 py-1 rounded">
+            SYSTEM_STATUS: ONLINE // DB_ACADEMY_v6.1
+        </div>
+    </div>
 </header>
 
 <nav class="bg-[#0f0f0f] border-b border-gray-800 sticky top-[88px] z-40 w-full shadow-2xl">
@@ -489,18 +511,20 @@
         topicContentArea.innerHTML = html;
     }
 
-    // Embed Creator (streamlined)
+    // Embed Creator
     const createSlideEmbed = (url, name) => {
-        const embedUrl = url.replace('/pub', '/embed');
+        const embedUrl = url.includes('/pub') ? url.replace('/pub', '/embed') : url;
+        const safeName = name.replace(/'/g, "\\'");
+        
         return `
             <div class="group flex flex-col h-full bg-[#111] border border-[#333] hover:border-red-500 transition-all duration-300 shadow-lg">
                 <div class="p-3 border-b border-[#222]">
-                    <a href="${url}" target="_blank" class="text-xs text-cyan-500 font-orbitron font-bold tracking-wider truncate hover:underline hover:text-white transition-colors block" title="OPEN FULLSCREEN">
-                        ${name.toUpperCase()} ↗
-                    </a>
+                     <a href="${url}" target="_blank" class="text-xs text-cyan-500 font-orbitron font-bold tracking-wider truncate hover:underline hover:text-white transition-colors block" title="OPEN FULLSCREEN">
+                   ${name.toUpperCase()} ↗
+                </a>
                 </div>
                 <div class="slide-embed-container bg-black">
-                    <iframe src="${embedUrl}" frameborder="0" loading="lazy" allowfullscreen></iframe>
+                    <iframe src="${embedUrl}" frameborder="0" loading="lazy" allowfullscreen="true"></iframe>
                 </div>
             </div>
         `;
