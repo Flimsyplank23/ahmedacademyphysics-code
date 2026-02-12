@@ -529,70 +529,11 @@
             </div>
         `;
     };
-
-    // --- MCQ MODAL LOGIC ---
-    const questionModal = document.getElementById('question-modal');
-    
-    function openQuestions(topicName) {
-        playClickSound();
-        const questions = generateSlideQuestions(topicName);
-        document.getElementById('modal-title').innerText = `DATA LINK: ${topicName.toUpperCase()}`;
-        
-        const contentDiv = document.getElementById('modal-content');
-        contentDiv.innerHTML = '';
-        
-        questions.forEach((qObj, idx) => {
-            // Create container for one question
-            const qDiv = document.createElement('div');
-            qDiv.className = "border-b border-gray-800 pb-6 last:border-0";
-            
-            // Question Text
-            const qTitle = document.createElement('h3');
-            qTitle.className = "text-white font-bold mb-3 flex gap-2 font-orbitron";
-            qTitle.innerHTML = `<span class="text-cyan-500">0${idx+1}</span> ${qObj.q}`;
-            qDiv.appendChild(qTitle);
-            
-            // Options Container
-            const optContainer = document.createElement('div');
-            optContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-2";
-            
-            qObj.options.forEach((optText, optIdx) => {
-                const btn = document.createElement('button');
-                btn.className = "mcq-option p-3 bg-gray-900 border border-gray-700 rounded-sm text-sm text-gray-300 font-mono";
-                btn.innerText = optText;
-                
-                // Click Event
-                btn.onclick = function() {
-                    // Disable all buttons in this question group
-                    const siblings = optContainer.querySelectorAll('button');
-                    siblings.forEach(b => b.disabled = true);
-                    
-                    // Check Answer
-                    if(optIdx === qObj.correct) {
-                        btn.classList.add('mcq-correct');
-                        btn.innerHTML += " ✓";
-                    } else {
-                        btn.classList.add('mcq-wrong');
-                        btn.innerHTML += " ✕";
-                        // Highlight correct one
-                        siblings[qObj.correct].classList.add('mcq-correct');
-                    }
-                };
-                optContainer.appendChild(btn);
-            });
-            
-            qDiv.appendChild(optContainer);
-            contentDiv.appendChild(qDiv);
-        });
-        
-        questionModal.classList.remove('hidden');
-    }
-
-    function closeQuestions() {
-        playClickSound();
-        questionModal.classList.add('hidden');
-    }
-
 </script>
+
+<!-- External JavaScript Files -->
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
