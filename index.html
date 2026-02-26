@@ -132,6 +132,40 @@
     color: white;
     border-color: var(--theme-red);
 }
+/* SEARCH */
+#search-wrapper {
+    position: relative;
+}
+#search-results {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    background: #111;
+    border: 1px solid var(--theme-red);
+    z-index: 9999;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.search-result-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #222;
+    transition: background 0.2s;
+}
+.search-result-item:hover {
+    background: rgba(255, 0, 60, 0.15);
+}
+.search-result-item .result-name {
+    color: white;
+    font-size: 0.8rem;
+    font-family: 'Orbitron', sans-serif;
+}
+.search-result-item .result-meta {
+    color: #666;
+    font-size: 0.7rem;
+    margin-top: 2px;
+}
 
     </style>
 </head>
@@ -140,10 +174,22 @@
 <audio id="ui-click-sound" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
 
 <header class="p-6 sticky top-0 z-50 shadow-lg w-full">
-    <div class="w-full flex flex-col md:flex-row justify-between items-center px-4">
+    <div class="w-full flex flex-col md:flex-row justify-between items-center px-4 gap-4">
         <h1 class="text-2xl md:text-4xl font-black tracking-tighter font-orbitron text-white text-center md:text-left">AHMED ACADEMY - PHYSICS</h1>
-        <div class="text-xs font-mono text-white opacity-80 mt-2 md:mt-0 bg-black/20 px-2 py-1 rounded">
-            SYSTEM_STATUS: ONLINE // DB_ACADEMY_v6.1
+        <div class="flex items-center gap-3">
+            <div id="search-wrapper">
+                <input
+                    id="search-input"
+                    type="text"
+                    placeholder="SEARCH SLIDES..."
+                    autocomplete="off"
+                    class="bg-black border border-gray-700 text-white font-mono text-xs px-4 py-2 w-48 md:w-64 focus:outline-none focus:border-red-500 transition-colors placeholder-gray-600"
+                />
+                <div id="search-results" class="hidden"></div>
+            </div>
+            <div class="text-xs font-mono text-white opacity-80 bg-black/20 px-2 py-1 rounded whitespace-nowrap">
+                SYSTEM_STATUS: ONLINE // DB_ACADEMY_v6.1
+            </div>
         </div>
     </div>
 </header>
@@ -333,6 +379,101 @@ function revealContent(topicKey) {
     }
     topicContentArea.innerHTML = html;
 }
+// --- SEARCH ---
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+
+function buildSearchIndex() {
+    const index = [];
+    for (const [moduleKey, moduleData] of Object.entries(DATABASE)) {
+        for (const [section, items] of Object.entries(moduleData.sections)) {
+            for (const item of items) {
+                index.push({
+                    name: item.name,
+                    section: section,
+                    module: moduleKey,
+                    link: item.link,
+                    level: currentLevel
+                });
+            }
+        }
+    }
+    return index;
+}
+
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+    searchResults.innerHTML = '';
+
+    if (query.length < 2) {
+        searchResults.classList.add('hidden');
+        return;
+    }
+
+    const index = buildSearchIndex();
+    const matches = index.filter(item => item.name.toLowerCase().includes(query));
+
+    if (matches.length === 0) {
+        searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No results found</span></div>`;
+        searchResults.classList.remove('hidden');
+        return;
+    }
+
+    matches.slice(0, 8).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'search-result-item';
+        div.innerHTML = `
+            <div class="result-name">${item.name.toUpperCase()}</div>
+            <div class="result-meta">${item.module} › ${item.section}</div>
+        `;
+        div.addEventListener('click', () => {
+            playClickSound();
+            searchResults.classList.add('hidden');
+            searchInput.value = '';
+
+            // Switch level if needed
+            if (item.level !== currentLevel) {
+                loadSlides(item.level).then(() => openSlideFromSearch(item));
+            } else {
+                openSlideFromSearch(item);
+            }
+        });
+        searchResults.appendChild(div);
+    });
+
+    searchResults.classList.remove('hidden');
+});
+
+function openSlideFromSearch(item) {
+    // Activate the correct module tab
+    document.querySelectorAll('.topic-card').forEach(c => {
+        c.classList.remove('active');
+        if (c.getAttribute('data-key') === item.module) {
+            c.classList.add('active');
+        }
+    });
+    revealContent(item.module);
+
+    // Scroll to the matching slide
+    setTimeout(() => {
+        const allTitles = document.querySelectorAll('#topic-content-area a');
+        for (const el of allTitles) {
+            if (el.textContent.trim().toUpperCase() === item.name.toUpperCase()) {
+                el.closest('div.group')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.closest('div.group')?.classList.add('ring-2', 'ring-red-500');
+                setTimeout(() => el.closest('div.group')?.classList.remove('ring-2', 'ring-red-500'), 3000);
+                break;
+            }
+        }
+    }, 300);
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.add('hidden');
+    }
+});
 loadSlides('gcse');
     // Embed Creator
     const createSlideEmbed = (url, name) => {
