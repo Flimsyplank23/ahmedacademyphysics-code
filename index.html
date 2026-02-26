@@ -118,6 +118,20 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #050505; }
         ::-webkit-scrollbar-thumb { background: var(--theme-red); }
+        .level-tab {
+    background: var(--theme-dark);
+    color: #666;
+    border: 1px solid #333;
+}
+.level-tab:hover {
+    color: white;
+    border-color: var(--theme-red);
+}
+.active-tab {
+    background: var(--theme-red);
+    color: white;
+    border-color: var(--theme-red);
+}
 
     </style>
 </head>
@@ -133,7 +147,22 @@
         </div>
     </div>
 </header>
-
+<div class="w-full bg-black border-b border-gray-800 sticky top-[88px] z-50">
+  <div class="flex justify-center gap-0 w-full max-w-xs mx-auto mt-0">
+    <button
+      id="tab-gcse"
+      onclick="loadSlides('gcse')"
+      class="level-tab active-tab flex-1 py-3 text-sm font-bold font-orbitron tracking-widest uppercase transition-all">
+      GCSE
+    </button>
+    <button
+      id="tab-alevel"
+      onclick="loadSlides('alevel')"
+      class="level-tab flex-1 py-3 text-sm font-bold font-orbitron tracking-widest uppercase transition-all">
+      A-LEVEL
+    </button>
+  </div>
+</div>
 <nav class="bg-[#0f0f0f] border-b border-gray-800 sticky top-[88px] z-40 w-full shadow-2xl">
     <div class="w-full p-4">
         <div id="module-nav-container" class="flex flex-wrap gap-2 justify-center w-full">
@@ -216,17 +245,31 @@
  
     // --- APP LOGIC ---
 // --- APP LOGIC ---
+// --- APP LOGIC ---
 let DATABASE = {};
+let currentLevel = 'gcse';
 
-async function loadSlides() {
+async function loadSlides(level) {
+  currentLevel = level;
   const placeholder = document.getElementById('content-placeholder');
+  const topicContentArea = document.getElementById('topic-content-area');
+
+  topicContentArea.classList.add('hidden');
+  placeholder.classList.remove('hidden');
   placeholder.innerHTML = `
     <div class="text-5xl mb-4 opacity-20">◢◤</div>
     <p class="text-gray-500 font-mono text-lg">ESTABLISHING UPLINK...</p>
   `;
 
+  // Update active tab
+  document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active-tab'));
+  document.getElementById(`tab-${level}`).classList.add('active-tab');
+
+  // Clear module nav
+  document.getElementById('module-nav-container').innerHTML = '';
+
   try {
-    const res = await fetch('/.netlify/functions/slides');
+    const res = await fetch(`/.netlify/functions/slides?level=${level}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     DATABASE = await res.json();
     buildNav();
@@ -261,40 +304,36 @@ function buildNav() {
 }
 
 // Keep your existing revealContent and createSlideEmbed functions exactly as they are
-
-loadSlides();
-    // 2. Content Display
+function revealContent(topicKey) {
+    const data = DATABASE[topicKey];
+    if (!data) return;
     const contentPlaceholder = document.getElementById('content-placeholder');
     const topicContentArea = document.getElementById('topic-content-area');
-    
-    function revealContent(topicKey) {
-        const data = DATABASE[topicKey];
-        if (!data) return;
-        contentPlaceholder.classList.add('hidden');
-        topicContentArea.classList.remove('hidden');
-        
-        let html = `
-            <div class="mb-6 border-b border-red-900 pb-2">
-                <h2 class="text-3xl font-black text-cyber-neon-pink font-orbitron tracking-tighter">${data.title}</h2>
-                <p class="text-xs font-mono text-gray-500 mt-1 uppercase tracking-widest">AHMED ACADEMY // SECURE_CLEARANCE_ENABLED</p>
+    contentPlaceholder.classList.add('hidden');
+    topicContentArea.classList.remove('hidden');
+
+    let html = `
+        <div class="mb-6 border-b border-red-900 pb-2">
+            <h2 class="text-3xl font-black font-orbitron tracking-tighter">${data.title}</h2>
+            <p class="text-xs font-mono text-gray-500 mt-1 uppercase tracking-widest">AHMED ACADEMY // SECURE_CLEARANCE_ENABLED</p>
+        </div>
+    `;
+
+    for (const [sectionName, items] of Object.entries(data.sections)) {
+        html += `
+            <div class="mb-10">
+                <h3 class="text-xl font-bold mb-4 text-white font-orbitron tracking-tight flex items-center border-l-4 border-cyan-500 pl-3">
+                    ${sectionName.toUpperCase()}
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${items.map(item => createSlideEmbed(item.link, item.name)).join('')}
+                </div>
             </div>
         `;
-        
-        for (const [sectionName, items] of Object.entries(data.sections)) {
-            html += `
-                <div class="mb-10">
-                    <h3 class="text-xl font-bold mb-4 text-white font-orbitron tracking-tight flex items-center border-l-4 border-cyan-500 pl-3">
-                        ${sectionName.toUpperCase()}
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        ${items.map(item => createSlideEmbed(item.link, item.name)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        topicContentArea.innerHTML = html;
     }
-
+    topicContentArea.innerHTML = html;
+}
+loadSlides('gcse');
     // Embed Creator
     const createSlideEmbed = (url, name) => {
         const embedUrl = url.includes('/pub') ? url.replace('/pub', '/embed') : url;
