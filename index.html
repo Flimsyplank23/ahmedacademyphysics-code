@@ -437,10 +437,15 @@ searchInput.addEventListener('input', () => {
             <div class="result-name">${item.name.toUpperCase()}</div>
             <div class="result-meta">${item.module} › ${item.section}</div>
         `;
-        div.addEventListener('click', () => {
+                div.addEventListener('click', async () => { // Added 'async' here
             playClickSound();
             searchResults.classList.add('hidden');
             searchInput.value = '';
+
+            // Switch level or just open the slide
+            await openSlideFromSearch(item);
+        });
+
 
             // Switch level if needed
             if (item.level !== currentLevel) {
@@ -455,28 +460,50 @@ searchInput.addEventListener('input', () => {
     searchResults.classList.remove('hidden');
 });
 
-function openSlideFromSearch(item) {
-    // Activate the correct module tab
+async function openSlideFromSearch(item) {
+    // 1. If we are on the wrong level, load the level first
+    if (item.level !== currentLevel) {
+        await loadSlides(item.level);
+    }
+
+    // 2. Force the module content to reveal
+    revealContent(item.module);
+
+    // 3. Highlight the correct module tab in the nav
     document.querySelectorAll('.topic-card').forEach(c => {
         c.classList.remove('active');
         if (c.getAttribute('data-key') === item.module) {
             c.classList.add('active');
         }
     });
-    revealContent(item.module);
 
-    // Scroll to the matching slide
+    // 4. Wait for the DOM to render, then scroll
     setTimeout(() => {
-        const allTitles = document.querySelectorAll('#topic-content-area a');
-        for (const el of allTitles) {
-            if (el.textContent.trim().toUpperCase() === item.name.toUpperCase()) {
-                el.closest('div.group')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.closest('div.group')?.classList.add('ring-2', 'ring-red-500');
-                setTimeout(() => el.closest('div.group')?.classList.remove('ring-2', 'ring-red-500'), 3000);
+        const allSlides = document.querySelectorAll('#topic-content-area .group');
+        let found = false;
+
+        for (const slide of allSlides) {
+            const titleElement = slide.querySelector('a');
+            // We use .includes to be more flexible with the matching
+            if (titleElement && titleElement.textContent.trim().toUpperCase().includes(item.name.toUpperCase())) {
+                
+                // Scroll the slide into the center of the screen
+                slide.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Visual highlight effect
+                slide.style.border = '2px solid #ff003c';
+                slide.style.boxShadow = '0 0 20px rgba(255, 0, 60, 0.5)';
+                
+                setTimeout(() => {
+                    slide.style.border = '';
+                    slide.style.boxShadow = '';
+                }, 3000);
+
+                found = true;
                 break;
             }
         }
-    }, 300);
+    }, 400); // 400ms gives the UI enough time to build the new slides
 }
 
 // Close dropdown when clicking outside
