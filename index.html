@@ -132,53 +132,49 @@ header {
     background: var(--theme-red);
     color: white;
     border-color: var(--theme-red);
-}
-/* SEARCH */
+}/* SEARCH - UPDATED */
 #search-wrapper {
-    position: relative;
+    position: relative; /* This keeps the results attached to the input */
 }
 
 #search-results {
-    position: absolute; /* Changed from fixed to absolute */
-    top: 100%;          /* Directly below the input */
+    position: absolute;
+    top: 100%;          /* Sits directly below the input */
     right: 0;
     width: 320px;
-    background: #0a0a0a !important; /* Force black background */
-    border: 1px solid #ff003c;
-    z-index: 9999 !important;
+    background: #111;   /* DARK BACKGROUND IS REQUIRED */
+    border: 1px solid var(--theme-red); /* Glowing border */
+    z-index: 9999;      /* Ensure it stays on top of everything */
     max-height: 400px;
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    display: none;      /* We use Tailwind 'hidden' usually, but this is safer */
-}
-
-/* This class will be toggled by JS */
-#search-results.visible {
-    display: block;
 }
 
 .search-result-item {
-    padding: 12px 14px;
+    padding: 12px 16px;
     cursor: pointer;
     border-bottom: 1px solid #222;
-    background: #0a0a0a;
-    transition: background 0.2s;
+    background: #111;
+    transition: all 0.2s;
 }
 
 .search-result-item:hover {
     background: rgba(255, 0, 60, 0.2);
+    border-left: 3px solid var(--theme-red);
 }
 
 .search-result-item .result-name {
     color: white;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
 }
 
 .search-result-item .result-meta {
-    color: #666;
+    color: #888;
     font-size: 0.7rem;
-    margin-top: 2px;
+    margin-top: 4px;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 
@@ -192,7 +188,7 @@ header {
     <div class="w-full flex flex-col md:flex-row justify-between items-center px-4 gap-4">
         <h1 class="text-2xl md:text-4xl font-black tracking-tighter font-orbitron text-white text-center md:text-left">AHMED ACADEMY - PHYSICS</h1>
         <div class="flex items-center gap-3">
-            <div id="-wrapper">
+            <div id="search-wrapper">
                 <input
                     id="search-input"
                     type="text"
@@ -400,21 +396,16 @@ const searchResults = document.getElementById('search-results');
 
 function buildSearchIndex() {
     const index = [];
-    // Only build if DATABASE actually has keys
-    if (!DATABASE || Object.keys(DATABASE).length === 0) return index;
-
     for (const [moduleKey, moduleData] of Object.entries(DATABASE)) {
-        if (moduleData.sections) {
-            for (const [section, items] of Object.entries(moduleData.sections)) {
-                for (const item of items) {
-                    index.push({
-                        name: item.name,
-                        section: section,
-                        module: moduleKey,
-                        link: item.link,
-                        level: currentLevel
-                    });
-                }
+        for (const [section, items] of Object.entries(moduleData.sections)) {
+            for (const item of items) {
+                index.push({
+                    name: item.name,
+                    section: section,
+                    module: moduleKey,
+                    link: item.link,
+                    level: currentLevel
+                });
             }
         }
     }
@@ -427,7 +418,6 @@ searchInput.addEventListener('input', () => {
 
     if (query.length < 2) {
         searchResults.classList.add('hidden');
-        searchResults.classList.remove('visible');
         return;
     }
 
@@ -436,65 +426,65 @@ searchInput.addEventListener('input', () => {
 
     if (matches.length === 0) {
         searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No results found</span></div>`;
-    } else {
-        matches.slice(0, 8).forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'search-result-item';
-            div.innerHTML = `
-                <div class="result-name">${item.name.toUpperCase()}</div>
-                <div class="result-meta">${item.module} › ${item.section}</div>
-            `;
-            div.addEventListener('click', () => {
-                playClickSound();
-                searchResults.classList.add('hidden');
-                searchResults.classList.remove('visible');
-                searchInput.value = '';
+        searchResults.classList.remove('hidden');
+        return;
+    }
+
+    matches.slice(0, 8).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'search-result-item';
+        div.innerHTML = `
+            <div class="result-name">${item.name.toUpperCase()}</div>
+            <div class="result-meta">${item.module} › ${item.section}</div>
+        `;
+        div.addEventListener('click', () => {
+            playClickSound();
+            searchResults.classList.add('hidden');
+            searchInput.value = '';
+
+            // Switch level if needed
+            if (item.level !== currentLevel) {
+                loadSlides(item.level).then(() => openSlideFromSearch(item));
+            } else {
                 openSlideFromSearch(item);
-            });
-            searchResults.appendChild(div);
+            }
         });
-    }
-
-    searchResults.classList.remove('hidden');
-    searchResults.classList.add('visible');
-});
-
-// The scroll-to-slide function
-async function openSlideFromSearch(item) {
-    if (item.level !== currentLevel) {
-        await loadSlides(item.level);
-    }
-    
-    revealContent(item.module);
-
-    // Update active state in nav
-    document.querySelectorAll('.topic-card').forEach(c => {
-        c.classList.toggle('active', c.getAttribute('data-key') === item.module);
+        searchResults.appendChild(div);
     });
 
-    // Scroll to the specific slide
+    searchResults.classList.remove('hidden');
+});
+
+function openSlideFromSearch(item) {
+    // Activate the correct module tab
+    document.querySelectorAll('.topic-card').forEach(c => {
+        c.classList.remove('active');
+        if (c.getAttribute('data-key') === item.module) {
+            c.classList.add('active');
+        }
+    });
+    revealContent(item.module);
+
+    // Scroll to the matching slide
     setTimeout(() => {
-        const allSlides = document.querySelectorAll('#topic-content-area .group');
-        for (const slide of allSlides) {
-            const link = slide.querySelector('a');
-            if (link && link.textContent.trim().toUpperCase().includes(item.name.toUpperCase())) {
-                slide.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                slide.classList.add('ring-2', 'ring-red-500');
-                setTimeout(() => slide.classList.remove('ring-2', 'ring-red-500'), 3000);
+        const allTitles = document.querySelectorAll('#topic-content-area a');
+        for (const el of allTitles) {
+            if (el.textContent.trim().toUpperCase() === item.name.toUpperCase()) {
+                el.closest('div.group')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.closest('div.group')?.classList.add('ring-2', 'ring-red-500');
+                setTimeout(() => el.closest('div.group')?.classList.remove('ring-2', 'ring-red-500'), 3000);
                 break;
             }
         }
-    }, 500);
+    }, 300);
 }
 
 // Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
         searchResults.classList.add('hidden');
-        searchResults.classList.remove('visible');
     }
 });
-
 loadSlides('gcse');
     // Embed Creator
     const createSlideEmbed = (url, name) => {
