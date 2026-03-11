@@ -134,40 +134,39 @@ header {
     border-color: var(--theme-red);
 }
 /* SEARCH */
-#search-wrapper {
-    position: relative;
-}
-#search-results {
-    position: fixed;
-    top: 140px;
-    right: 20px;
-    width: 320px;
-.search-result-item {
-    padding: 10px 14px;
-    cursor: pointer;
-    border-bottom: 1px solid #222;
-    transition: background 0.2s;
-}
-.search-result-item:hover {
-    background: rgba(255, 0, 60, 0.15);
-}
-.search-result-item .result-name {
-    color: white;
-    font-size: 0.8rem;
-    font-family: 'Orbitron', sans-serif;
-}
-.search-result-item .result-meta {
-    color: #666;
-    font-size: 0.7rem;
-    margin-top: 2px;
-}
-
-    </style>
-</head>
-<body class="min-h-screen flex flex-col w-full">
-
-<audio id="ui-click-sound" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
-
+ #search-wrapper {
+     position: relative;
+ }
+ #search-results {
+     position: fixed;
+     top: 140px;
+     right: 20px;
+     width: 320px;
+     background: var(--theme-dark);
+     border: 1px solid #333;
+     max-height: 400px;
+     overflow-y: auto;
+     z-index: 1000;
+ }
+151| .search-result-item {
+152|     padding: 10px 14px;
+153|     cursor: pointer;
+154|     border-bottom: 1px solid #222;
+155|     transition: background 0.2s;
+156| }
+157| .search-result-item:hover {
+158|     background: rgba(255, 0, 60, 0.15);
+159| }
+160| .search-result-item .result-name {
+161|     color: white;
+162|     font-size: 0.8rem;
+163|     font-family: 'Orbitron', sans-serif;
+164| }
+165| .search-result-item .result-meta {
+166|     color: #666;
+167|     font-size: 0.7rem;
+168|     margin-top: 2px;
+169| }
 <header class="p-6 sticky top-0 z-50 shadow-lg w-full">
     <div class="w-full flex flex-col md:flex-row justify-between items-center px-4 gap-4">
         <h1 class="text-2xl md:text-4xl font-black tracking-tighter font-orbitron text-white text-center md:text-left">AHMED ACADEMY - PHYSICS</h1>
