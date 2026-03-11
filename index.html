@@ -132,36 +132,51 @@ header {
     background: var(--theme-red);
     color: white;
     border-color: var(--theme-red);
-}
-/* SEARCH */
+}/* SEARCH - UPDATED */
 #search-wrapper {
-    position: relative;
+    position: relative; /* This keeps the results attached to the input */
 }
+
 #search-results {
-    position: fixed;
-    top: 140px;
-    right: 20px;
+    position: absolute;
+    top: 100%;          /* Sits directly below the input */
+    right: 0;
     width: 320px;
+    background: #111;   /* DARK BACKGROUND IS REQUIRED */
+    border: 1px solid var(--theme-red); /* Glowing border */
+    z-index: 9999;      /* Ensure it stays on top of everything */
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
+
 .search-result-item {
-    padding: 10px 14px;
+    padding: 12px 16px;
     cursor: pointer;
     border-bottom: 1px solid #222;
-    transition: background 0.2s;
+    background: #111;
+    transition: all 0.2s;
 }
+
 .search-result-item:hover {
-    background: rgba(255, 0, 60, 0.15);
+    background: rgba(255, 0, 60, 0.2);
+    border-left: 3px solid var(--theme-red);
 }
+
 .search-result-item .result-name {
     color: white;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
 }
+
 .search-result-item .result-meta {
-    color: #666;
+    color: #888;
     font-size: 0.7rem;
-    margin-top: 2px;
+    margin-top: 4px;
+    font-family: 'Rajdhani', sans-serif;
 }
+
 
     </style>
 </head>
