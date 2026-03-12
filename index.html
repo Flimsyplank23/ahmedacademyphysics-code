@@ -414,6 +414,7 @@ function buildSearchIndex() {
 }
 
 searchInput.addEventListener('input', () => {
+    console.log('typing:', query, 'DB size:', Object.keys(DATABASE).length);
     const query = searchInput.value.trim().toLowerCase();
     searchResults.innerHTML = '';
 
