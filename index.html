@@ -148,6 +148,7 @@ header {
     max-height: 400px;
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    display: none;
 }
 
 .search-result-item {
@@ -417,7 +418,7 @@ searchInput.addEventListener('input', () => {
     searchResults.innerHTML = '';
 
     if (query.length < 2) {
-        searchResults.classList.add('hidden');
+        searchResults.style.display = 'none';
         return;
     }
 
@@ -426,7 +427,7 @@ searchInput.addEventListener('input', () => {
 
     if (matches.length === 0) {
         searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No results found</span></div>`;
-        searchResults.classList.remove('hidden');
+        searchResults.style.display = 'block';
         return;
     }
 
@@ -439,7 +440,7 @@ searchInput.addEventListener('input', () => {
         `;
         div.addEventListener('click', () => {
             playClickSound();
-            searchResults.classList.add('hidden');
+            searchResults.style.display = 'none';
             searchInput.value = '';
 
             // Switch level if needed
@@ -452,7 +453,7 @@ searchInput.addEventListener('input', () => {
         searchResults.appendChild(div);
     });
 
-    searchResults.classList.remove('hidden');
+    searchResults.style.display = 'block';
 });
 
 function openSlideFromSearch(item) {
@@ -482,7 +483,7 @@ function openSlideFromSearch(item) {
 // Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-        searchResults.classList.add('hidden');
+        searchResults.style.display = 'none';
     }
 });
 loadSlides('gcse');
