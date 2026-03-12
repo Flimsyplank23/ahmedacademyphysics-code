@@ -133,57 +133,12 @@ header {
     color: white;
     border-color: var(--theme-red);
 }
-// --- TERMINAL SEARCH LOGIC ---
-const searchInput = document.getElementById('search-input');
-const searchResults = document.getElementById('search-results');
-
-function buildSearchIndex() {
-    const index = [];
-    if (!DATABASE) return index;
-
-    // Searches ONLY the current level's DATABASE
-    for (const [moduleKey, moduleData] of Object.entries(DATABASE)) {
-        
-        // 1. Index Module Names
-        index.push({
-            name: moduleKey,
-            meta: "SYSTEM_MODULE",
-            module: moduleKey,
-            type: 'module'
-        });
-
-        if (moduleData.sections) {
-            for (const [sectionName, items] of Object.entries(moduleData.sections)) {
-                
-                // 2. Index Submodule/Section Names
-                index.push({
-                    name: sectionName,
-                    meta: `${moduleKey} // SECTION`,
-                    module: moduleKey,
-                    type: 'section'
-                });
-
-                // 3. Index individual Slides
-                for (const item of items) {
-                    index.push({
-                        name: item.name,
-                        meta: `${moduleKey} // ${sectionName}`,
-                        module: moduleKey,
-                        type: 'slide'
-                    });
-                }
-            }
-        }
-    }
-    return index;
-}
-
+// --- TERMINAL AUTO-JUMP SEARCH ---
 searchInput.addEventListener('input', () => {
     const query = searchInput.value.trim().toLowerCase();
-    
-    // Clear and hide if query is empty
+    searchResults.innerHTML = '';
+
     if (query.length < 2) {
-        searchResults.innerHTML = '';
         searchResults.style.display = 'none';
         return;
     }
@@ -191,10 +146,13 @@ searchInput.addEventListener('input', () => {
     const index = buildSearchIndex();
     const matches = index.filter(item => item.name.toLowerCase().includes(query));
 
-    // Render results into the FIXED side panel
-    searchResults.innerHTML = matches.length > 0 ? '' : `<div class="search-result-item"><div class="result-name text-red-500">NO_DATA_FOUND</div></div>`;
-    
-    matches.slice(0, 10).forEach(item => {
+    if (matches.length === 0) {
+        searchResults.innerHTML = `<div class="search-result-item"><div class="result-name text-gray-500">NO_DATA_FOUND</div></div>`;
+        searchResults.style.display = 'block';
+        return;
+    }
+
+    matches.slice(0, 8).forEach(item => {
         const div = document.createElement('div');
         div.className = 'search-result-item';
         div.innerHTML = `
@@ -207,45 +165,63 @@ searchInput.addEventListener('input', () => {
             searchResults.style.display = 'none';
             searchInput.value = '';
 
-            // Navigation sequence
-            const cards = document.querySelectorAll('.topic-card');
-            cards.forEach(c => {
+            // 1. Switch Module
+            document.querySelectorAll('.topic-card').forEach(c => {
                 c.classList.remove('active');
                 if (c.getAttribute('data-key') === item.module) c.classList.add('active');
             });
 
+            // 2. Load Content
             revealContent(item.module);
 
-            // Detailed scrolling logic
+            // 3. THE AUTO-JUMP (Heavy Duty Version)
+            // We use a slightly longer delay (500ms) to ensure the DOM is ready
             setTimeout(() => {
                 let target = null;
+
                 if (item.type === 'section') {
+                    // Look for the specific H3 header
                     const headers = document.querySelectorAll('#topic-content-area h3');
-                    for (const h of headers) if (h.textContent.trim().toUpperCase() === item.name.toUpperCase()) target = h;
+                    headers.forEach(h => {
+                        if (h.textContent.toUpperCase().includes(item.name.toUpperCase())) target = h;
+                    });
                 } else {
+                    // Look for the slide link
                     const links = document.querySelectorAll('#topic-content-area a');
-                    for (const a of links) if (a.textContent.trim().toUpperCase().includes(item.name.toUpperCase())) target = a.closest('.group');
+                    links.forEach(a => {
+                        if (a.textContent.toUpperCase().includes(item.name.toUpperCase())) {
+                            target = a.closest('.group');
+                        }
+                    });
                 }
 
                 if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    target.classList.add('ring-2', 'ring-red-500', 'ring-offset-4', 'ring-offset-black');
-                    setTimeout(() => target.classList.remove('ring-2', 'ring-red-500', 'ring-offset-4', 'ring-offset-black'), 3000);
+                    // Force the jump
+                    const offset = 150; // Adjust this to stop the scroll exactly where you want
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = target.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    // Visual Ping
+                    target.style.border = "2px solid #ff003c";
+                    target.style.boxShadow = "0 0 20px rgba(255, 0, 60, 0.5)";
+                    setTimeout(() => {
+                        target.style.border = "";
+                        target.style.boxShadow = "";
+                    }, 2000);
                 }
-            }, 400);
+            }, 500); 
         });
         searchResults.appendChild(div);
     });
 
-    // FORCE DISPLAY AS FIXED TERMINAL
     searchResults.style.display = 'block';
-});
-
-// Close terminal when clicking outside
-document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-        searchResults.style.display = 'none';
-    }
 });
 
     </style>
