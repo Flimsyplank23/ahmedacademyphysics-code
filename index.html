@@ -133,7 +133,7 @@ header {
     color: white;
     border-color: var(--theme-red);
 }
-// --- UPDATED SEARCH LOGIC ---
+// --- TERMINAL SEARCH LOGIC ---
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 
@@ -141,13 +141,13 @@ function buildSearchIndex() {
     const index = [];
     if (!DATABASE) return index;
 
-    // Searches the current Level (GCSE or A-LEVEL)
+    // Searches ONLY the current level's DATABASE
     for (const [moduleKey, moduleData] of Object.entries(DATABASE)) {
         
-        // 1. Index Modules
+        // 1. Index Module Names
         index.push({
             name: moduleKey,
-            meta: "MAIN MODULE",
+            meta: "SYSTEM_MODULE",
             module: moduleKey,
             type: 'module'
         });
@@ -155,19 +155,19 @@ function buildSearchIndex() {
         if (moduleData.sections) {
             for (const [sectionName, items] of Object.entries(moduleData.sections)) {
                 
-                // 2. Index Submodules (Sections)
+                // 2. Index Submodule/Section Names
                 index.push({
                     name: sectionName,
-                    meta: `${moduleKey} › SECTION`,
+                    meta: `${moduleKey} // SECTION`,
                     module: moduleKey,
                     type: 'section'
                 });
 
-                // 3. Index Slides
+                // 3. Index individual Slides
                 for (const item of items) {
                     index.push({
                         name: item.name,
-                        meta: `${moduleKey} › ${sectionName}`,
+                        meta: `${moduleKey} // ${sectionName}`,
                         module: moduleKey,
                         type: 'slide'
                     });
@@ -180,9 +180,10 @@ function buildSearchIndex() {
 
 searchInput.addEventListener('input', () => {
     const query = searchInput.value.trim().toLowerCase();
-    searchResults.innerHTML = '';
-
+    
+    // Clear and hide if query is empty
     if (query.length < 2) {
+        searchResults.innerHTML = '';
         searchResults.style.display = 'none';
         return;
     }
@@ -190,12 +191,9 @@ searchInput.addEventListener('input', () => {
     const index = buildSearchIndex();
     const matches = index.filter(item => item.name.toLowerCase().includes(query));
 
-    if (matches.length === 0) {
-        searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">NO MATCHES FOUND</span></div>`;
-        searchResults.style.display = 'block';
-        return;
-    }
-
+    // Render results into the FIXED side panel
+    searchResults.innerHTML = matches.length > 0 ? '' : `<div class="search-result-item"><div class="result-name text-red-500">NO_DATA_FOUND</div></div>`;
+    
     matches.slice(0, 10).forEach(item => {
         const div = document.createElement('div');
         div.className = 'search-result-item';
@@ -209,53 +207,41 @@ searchInput.addEventListener('input', () => {
             searchResults.style.display = 'none';
             searchInput.value = '';
 
-            // Activate the module card
-            document.querySelectorAll('.topic-card').forEach(c => {
+            // Navigation sequence
+            const cards = document.querySelectorAll('.topic-card');
+            cards.forEach(c => {
                 c.classList.remove('active');
                 if (c.getAttribute('data-key') === item.module) c.classList.add('active');
             });
 
-            // Reveal the content
             revealContent(item.module);
 
-            // Jump to section or slide
+            // Detailed scrolling logic
             setTimeout(() => {
                 let target = null;
                 if (item.type === 'section') {
                     const headers = document.querySelectorAll('#topic-content-area h3');
-                    for (const h of headers) {
-                        if (h.textContent.trim().toUpperCase() === item.name.toUpperCase()) {
-                            target = h;
-                            break;
-                        }
-                    }
-                } else if (item.type === 'slide') {
+                    for (const h of headers) if (h.textContent.trim().toUpperCase() === item.name.toUpperCase()) target = h;
+                } else {
                     const links = document.querySelectorAll('#topic-content-area a');
-                    for (const a of links) {
-                        if (a.textContent.trim().toUpperCase().includes(item.name.toUpperCase())) {
-                            target = a.closest('.group');
-                            break;
-                        }
-                    }
+                    for (const a of links) if (a.textContent.trim().toUpperCase().includes(item.name.toUpperCase())) target = a.closest('.group');
                 }
 
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    target.classList.add('ring-2', 'ring-red-500');
-                    setTimeout(() => target.classList.remove('ring-2', 'ring-red-500'), 3000);
+                    target.classList.add('ring-2', 'ring-red-500', 'ring-offset-4', 'ring-offset-black');
+                    setTimeout(() => target.classList.remove('ring-2', 'ring-red-500', 'ring-offset-4', 'ring-offset-black'), 3000);
                 }
             }, 400);
         });
         searchResults.appendChild(div);
     });
 
-    // Restore the pop-out side panel appearance
+    // FORCE DISPLAY AS FIXED TERMINAL
     searchResults.style.display = 'block';
-    searchResults.style.visibility = 'visible';
-    searchResults.style.opacity = '1';
 });
 
-// Close when clicking away
+// Close terminal when clicking outside
 document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
         searchResults.style.display = 'none';
