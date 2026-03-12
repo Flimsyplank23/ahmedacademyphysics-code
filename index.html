@@ -138,13 +138,13 @@ header {
 }
 
 #search-results {
-    position: absolute;
-    top: 100%;          /* Sits directly below the input */
-    right: 0;
+    position: fixed;
+    top: 140px;
+    right: 20px;
     width: 320px;
-    background: #111;   /* DARK BACKGROUND IS REQUIRED */
-    border: 1px solid var(--theme-red); /* Glowing border */
-    z-index: 9999;      /* Ensure it stays on top of everything */
+    background: #111;
+    border: 1px solid var(--theme-red);
+    z-index: 99999;
     max-height: 400px;
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
