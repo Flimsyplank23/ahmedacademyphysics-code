@@ -425,6 +425,7 @@ searchInput.addEventListener('input', () => {
 
     const index = buildSearchIndex();
     const matches = index.filter(item => item.name.toLowerCase().includes(query));
+console.log('index size:', index.length, 'matches:', matches.length);
 
     if (matches.length === 0) {
         searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No results found</span></div>`;
