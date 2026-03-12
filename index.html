@@ -432,8 +432,11 @@ console.log('index size:', index.length, 'matches:', matches.length);
         searchResults.style.display = 'block';
         return;
     }
-
+console.log('results display:', searchResults.style.display, searchResults.offsetParent);
     matches.slice(0, 8).forEach(item => {
+        searchResults.style.display = 'block';
+searchResults.style.visibility = 'visible';
+searchResults.style.opacity = '1';
         const div = document.createElement('div');
         div.className = 'search-result-item';
         div.innerHTML = `
