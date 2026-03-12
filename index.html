@@ -133,37 +133,37 @@ header {
     color: white;
     border-color: var(--theme-red);
 }
-// --- UPDATED SEARCH LOGIC (SAME LOOK, MORE POWER) ---
+// --- UPDATED SEARCH LOGIC (FIXED SIDE PANEL STYLE) ---
 function buildSearchIndex() {
     const index = [];
-    // Only searches the current DATABASE (automatically stays in your active tab)
+    // Only indexing the current level (DATABASE updates when you switch tabs)
     for (const [moduleKey, moduleData] of Object.entries(DATABASE)) {
         
-        // 1. Index the Module
+        // 1. Add the Module Name
         index.push({
             name: moduleKey,
             meta: "Main Module",
             module: moduleKey,
-            targetType: 'module'
+            type: 'module'
         });
 
         for (const [sectionName, items] of Object.entries(moduleData.sections)) {
             
-            // 2. Index the Submodule (Section)
+            // 2. Add the Section Name (Submodule)
             index.push({
                 name: sectionName,
                 meta: `${moduleKey} › Section`,
                 module: moduleKey,
-                targetType: 'section'
+                type: 'section'
             });
 
             for (const item of items) {
-                // 3. Index the individual Slides
+                // 3. Add the individual Slide
                 index.push({
                     name: item.name,
                     meta: `${moduleKey} › ${sectionName}`,
                     module: moduleKey,
-                    targetType: 'slide'
+                    type: 'slide'
                 });
             }
         }
@@ -173,6 +173,8 @@ function buildSearchIndex() {
 
 searchInput.addEventListener('input', () => {
     const query = searchInput.value.trim().toLowerCase();
+    
+    // Clear the side panel
     searchResults.innerHTML = '';
 
     if (query.length < 2) {
@@ -184,59 +186,62 @@ searchInput.addEventListener('input', () => {
     const matches = index.filter(item => item.name.toLowerCase().includes(query));
 
     if (matches.length === 0) {
-        searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No results found</span></div>`;
+        searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No matches in current level</span></div>`;
         searchResults.style.display = 'block';
         return;
     }
 
+    // Populate the fixed side panel
     matches.slice(0, 8).forEach(item => {
-        searchResults.style.display = 'block';
         const div = document.createElement('div');
         div.className = 'search-result-item';
-        
-        // Keeping your EXACT original HTML structure
         div.innerHTML = `
             <div class="result-name">${item.name.toUpperCase()}</div>
             <div class="result-meta">${item.meta.toUpperCase()}</div>
         `;
-
+        
         div.addEventListener('click', () => {
             playClickSound();
             searchResults.style.display = 'none';
             searchInput.value = '';
 
-            // 1. Activate the correct module tab
+            // 1. Activate the correct module card in the top nav
             document.querySelectorAll('.topic-card').forEach(c => {
                 c.classList.remove('active');
-                if (c.getAttribute('data-key') === item.module) {
-                    c.classList.add('active');
-                }
+                if (c.getAttribute('data-key') === item.module) c.classList.add('active');
             });
 
-            // 2. Render the content
+            // 2. Load the content for that module
             revealContent(item.module);
 
-            // 3. Scroll to the specific result
+            // 3. Scroll to specific section or slide
             setTimeout(() => {
                 let target = null;
-                if (item.targetType === 'section') {
+                if (item.type === 'section') {
+                    // Find the Section Title
                     const headers = document.querySelectorAll('#topic-content-area h3');
                     for (const h of headers) if (h.textContent.trim().toUpperCase() === item.name.toUpperCase()) target = h;
-                } else if (item.targetType === 'slide') {
+                } else if (item.type === 'slide') {
+                    // Find the Slide Link
                     const links = document.querySelectorAll('#topic-content-area a');
                     for (const a of links) if (a.textContent.trim().toUpperCase().includes(item.name.toUpperCase())) target = a.closest('.group');
                 }
 
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    target.classList.add('ring-1', 'ring-red-500');
-                    setTimeout(() => target.classList.remove('ring-1', 'ring-red-500'), 2000);
+                    // Visual confirmation
+                    target.classList.add('ring-2', 'ring-red-500');
+                    setTimeout(() => target.classList.remove('ring-2', 'ring-red-500'), 2000);
                 }
             }, 350);
         });
         searchResults.appendChild(div);
     });
+
+    // Make sure the fixed panel is visible
+    searchResults.style.display = 'block';
 });
+
 
     </style>
 </head>
