@@ -132,40 +132,38 @@ header {
     background: var(--theme-red);
     color: white;
     border-color: var(--theme-red);
-}// --- UPDATED SEARCH LOGIC ---
+}
+// --- UPDATED SEARCH LOGIC (SAME LOOK, MORE POWER) ---
 function buildSearchIndex() {
     const index = [];
-    // This loops through the current DATABASE (the level you are in)
+    // Only searches the current DATABASE (automatically stays in your active tab)
     for (const [moduleKey, moduleData] of Object.entries(DATABASE)) {
         
-        // 1. Index the Module Name (e.g., "P1: FORCES")
+        // 1. Index the Module
         index.push({
             name: moduleKey,
-            type: 'MODULE',
+            meta: "Main Module",
             module: moduleKey,
-            section: null,
-            link: null
+            targetType: 'module'
         });
 
         for (const [sectionName, items] of Object.entries(moduleData.sections)) {
             
-            // 2. Index the Submodule/Section Name (e.g., "VECTORS")
+            // 2. Index the Submodule (Section)
             index.push({
                 name: sectionName,
-                type: 'SUBMODULE',
+                meta: `${moduleKey} › Section`,
                 module: moduleKey,
-                section: sectionName,
-                link: null
+                targetType: 'section'
             });
 
             for (const item of items) {
                 // 3. Index the individual Slides
                 index.push({
                     name: item.name,
-                    type: 'SLIDE',
+                    meta: `${moduleKey} › ${sectionName}`,
                     module: moduleKey,
-                    section: sectionName,
-                    link: item.link
+                    targetType: 'slide'
                 });
             }
         }
@@ -186,62 +184,60 @@ searchInput.addEventListener('input', () => {
     const matches = index.filter(item => item.name.toLowerCase().includes(query));
 
     if (matches.length === 0) {
-        searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No matches found in ${currentLevel.toUpperCase()}</span></div>`;
+        searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No results found</span></div>`;
         searchResults.style.display = 'block';
         return;
     }
 
-    matches.slice(0, 10).forEach(item => {
+    matches.slice(0, 8).forEach(item => {
         searchResults.style.display = 'block';
         const div = document.createElement('div');
         div.className = 'search-result-item';
         
-        // Contextual meta text based on what it found
-        const metaText = item.type === 'MODULE' ? 'Main Module' : `${item.module} › ${item.type === 'SUBMODULE' ? 'Section' : item.section}`;
-        
+        // Keeping your EXACT original HTML structure
         div.innerHTML = `
-            <div class="result-name">${item.name.toUpperCase()} <span class="text-[10px] opacity-30 ml-1">[${item.type}]</span></div>
-            <div class="result-meta">${metaText}</div>
+            <div class="result-name">${item.name.toUpperCase()}</div>
+            <div class="result-meta">${item.meta.toUpperCase()}</div>
         `;
 
         div.addEventListener('click', () => {
             playClickSound();
             searchResults.style.display = 'none';
             searchInput.value = '';
-            
-            // 1. Highlight the Module Card in the nav
+
+            // 1. Activate the correct module tab
             document.querySelectorAll('.topic-card').forEach(c => {
                 c.classList.remove('active');
-                if (c.getAttribute('data-key') === item.module) c.classList.add('active');
+                if (c.getAttribute('data-key') === item.module) {
+                    c.classList.add('active');
+                }
             });
 
-            // 2. Build the UI for that Module
+            // 2. Render the content
             revealContent(item.module);
 
-            // 3. Jump to the specific section or slide
+            // 3. Scroll to the specific result
             setTimeout(() => {
                 let target = null;
-                if (item.type === 'SUBMODULE') {
-                    // Look for section headers
+                if (item.targetType === 'section') {
                     const headers = document.querySelectorAll('#topic-content-area h3');
                     for (const h of headers) if (h.textContent.trim().toUpperCase() === item.name.toUpperCase()) target = h;
-                } else if (item.type === 'SLIDE') {
-                    // Look for specific slide titles
+                } else if (item.targetType === 'slide') {
                     const links = document.querySelectorAll('#topic-content-area a');
                     for (const a of links) if (a.textContent.trim().toUpperCase().includes(item.name.toUpperCase())) target = a.closest('.group');
                 }
 
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Visual feedback
-                    target.classList.add('ring-2', 'ring-cyan-500');
-                    setTimeout(() => target.classList.remove('ring-2', 'ring-cyan-500'), 2500);
+                    target.classList.add('ring-1', 'ring-red-500');
+                    setTimeout(() => target.classList.remove('ring-1', 'ring-red-500'), 2000);
                 }
             }, 350);
         });
         searchResults.appendChild(div);
     });
 });
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col w-full">
