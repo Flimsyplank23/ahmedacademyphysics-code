@@ -132,97 +132,52 @@ header {
     background: var(--theme-red);
     color: white;
     border-color: var(--theme-red);
+}/* SEARCH - UPDATED */
+#search-wrapper {
+    position: relative; /* This keeps the results attached to the input */
 }
-// --- TERMINAL AUTO-JUMP SEARCH ---
-searchInput.addEventListener('input', () => {
-    const query = searchInput.value.trim().toLowerCase();
-    searchResults.innerHTML = '';
 
-    if (query.length < 2) {
-        searchResults.style.display = 'none';
-        return;
-    }
+#search-results {
+    position: fixed;
+    top: 140px;
+    right: 20px;
+    width: 320px;
+    background: #111;
+    border: 1px solid var(--theme-red);
+    z-index: 99999;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    display: none;
+}
 
-    const index = buildSearchIndex();
-    const matches = index.filter(item => item.name.toLowerCase().includes(query));
+.search-result-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #222;
+    background: #111;
+    transition: all 0.2s;
+}
 
-    if (matches.length === 0) {
-        searchResults.innerHTML = `<div class="search-result-item"><div class="result-name text-gray-500">NO_DATA_FOUND</div></div>`;
-        searchResults.style.display = 'block';
-        return;
-    }
+.search-result-item:hover {
+    background: rgba(255, 0, 60, 0.2);
+    border-left: 3px solid var(--theme-red);
+}
 
-    matches.slice(0, 8).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'search-result-item';
-        div.innerHTML = `
-            <div class="result-name">${item.name.toUpperCase()}</div>
-            <div class="result-meta">${item.meta.toUpperCase()}</div>
-        `;
-        
-        div.addEventListener('click', () => {
-            playClickSound();
-            searchResults.style.display = 'none';
-            searchInput.value = '';
+.search-result-item .result-name {
+    color: white;
+    font-size: 0.85rem;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+}
 
-            // 1. Switch Module
-            document.querySelectorAll('.topic-card').forEach(c => {
-                c.classList.remove('active');
-                if (c.getAttribute('data-key') === item.module) c.classList.add('active');
-            });
+.search-result-item .result-meta {
+    color: #888;
+    font-size: 0.7rem;
+    margin-top: 4px;
+    font-family: 'Rajdhani', sans-serif;
+}
 
-            // 2. Load Content
-            revealContent(item.module);
-
-            // 3. THE AUTO-JUMP (Heavy Duty Version)
-            // We use a slightly longer delay (500ms) to ensure the DOM is ready
-            setTimeout(() => {
-                let target = null;
-
-                if (item.type === 'section') {
-                    // Look for the specific H3 header
-                    const headers = document.querySelectorAll('#topic-content-area h3');
-                    headers.forEach(h => {
-                        if (h.textContent.toUpperCase().includes(item.name.toUpperCase())) target = h;
-                    });
-                } else {
-                    // Look for the slide link
-                    const links = document.querySelectorAll('#topic-content-area a');
-                    links.forEach(a => {
-                        if (a.textContent.toUpperCase().includes(item.name.toUpperCase())) {
-                            target = a.closest('.group');
-                        }
-                    });
-                }
-
-                if (target) {
-                    // Force the jump
-                    const offset = 150; // Adjust this to stop the scroll exactly where you want
-                    const bodyRect = document.body.getBoundingClientRect().top;
-                    const elementRect = target.getBoundingClientRect().top;
-                    const elementPosition = elementRect - bodyRect;
-                    const offsetPosition = elementPosition - offset;
-
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
-
-                    // Visual Ping
-                    target.style.border = "2px solid #ff003c";
-                    target.style.boxShadow = "0 0 20px rgba(255, 0, 60, 0.5)";
-                    setTimeout(() => {
-                        target.style.border = "";
-                        target.style.boxShadow = "";
-                    }, 2000);
-                }
-            }, 500); 
-        });
-        searchResults.appendChild(div);
-    });
-
-    searchResults.style.display = 'block';
-});
 
     </style>
 </head>
@@ -242,6 +197,7 @@ searchInput.addEventListener('input', () => {
                     autocomplete="off"
                     class="bg-black border border-gray-700 text-white font-mono text-xs px-4 py-2 w-48 md:w-64 focus:outline-none focus:border-red-500 transition-colors placeholder-gray-600"
                 />
+                <div id="search-results" class="hidden"></div>
             </div>
             <div class="text-xs font-mono text-white opacity-80 bg-black/20 px-2 py-1 rounded whitespace-nowrap">
                 SYSTEM_STATUS: ONLINE // DB_ACADEMY_v6.1
@@ -249,9 +205,6 @@ searchInput.addEventListener('input', () => {
         </div>
     </div>
 </header>
-</header>
-<div id="search-results"></div>
-<div class="w-full bg-black border-b ...
 <div class="w-full bg-black border-b border-gray-800 sticky top-[88px] z-50">
   <div class="flex justify-center gap-0 w-full max-w-xs mx-auto mt-0">
     <button
