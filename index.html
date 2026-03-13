@@ -307,7 +307,7 @@ header {
 let DATABASE = {};
 let currentLevel = 'gcse';
 
-async function loadSlides(level) {
+window.loadSlides = async function(level) {
   currentLevel = level;
   const placeholder = document.getElementById('content-placeholder');
   const topicContentArea = document.getElementById('topic-content-area');
@@ -343,7 +343,7 @@ async function loadSlides(level) {
   }
 }
 
-function buildNav() {
+window.buildNav = function() {
   const navContainer = document.getElementById('module-nav-container');
   navContainer.innerHTML = '';
   Object.keys(DATABASE).forEach(key => {
@@ -362,7 +362,7 @@ function buildNav() {
 }
 
 // Keep your existing revealContent and createSlideEmbed functions exactly as they are
-function revealContent(topicKey) {
+window.revealContent = function(topicKey) {
     const data = DATABASE[topicKey];
     if (!data) return;
     const contentPlaceholder = document.getElementById('content-placeholder');
@@ -390,6 +390,9 @@ function revealContent(topicKey) {
         `;
     }
     topicContentArea.innerHTML = html;
+}
+window.closeQuestions = function() {
+    document.getElementById('question-modal').classList.add('hidden');
 }
 // --- SEARCH ---
 const searchInput = document.getElementById('search-input');
