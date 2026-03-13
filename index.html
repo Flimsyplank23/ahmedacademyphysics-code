@@ -292,76 +292,87 @@ header {
 
 <script>
     // --- AUDIO ---
-    const clickSound = document.getElementById('ui-click-sound');
-    function playClickSound() {
-        if(clickSound) {
-            clickSound.currentTime = 0;
-            clickSound.volume = 0.2; 
-            clickSound.play().catch(e => {});
-        }
+const clickSound = document.getElementById('ui-click-sound');
+function playClickSound() {
+    if(clickSound) {
+        clickSound.currentTime = 0;
+        clickSound.volume = 0.2; 
+        clickSound.play().catch(e => {});
     }
- 
-    // --- APP LOGIC ---
-// --- APP LOGIC ---
+}
+
+// --- EMBED CREATOR ---
+const createSlideEmbed = (url, name) => {
+    const embedUrl = url.includes('/pub') ? url.replace('/pub', '/embed') : url;
+    return `
+        <div class="group flex flex-col h-full bg-[#111] border border-[#333] hover:border-red-500 transition-all duration-300 shadow-lg">
+            <div class="p-3 border-b border-[#222]">
+                <a href="${url}" target="_blank" class="text-xs text-cyan-500 font-orbitron font-bold tracking-wider truncate hover:underline hover:text-white transition-colors block" title="OPEN FULLSCREEN">
+                    ${name.toUpperCase()} ↗
+                </a>
+            </div>
+            <div class="slide-embed-container bg-black">
+                <iframe src="${embedUrl}" frameborder="0" loading="lazy" allowfullscreen="true"></iframe>
+            </div>
+        </div>
+    `;
+};
+
 // --- APP LOGIC ---
 let DATABASE = {};
 let currentLevel = 'gcse';
 
 window.loadSlides = async function(level) {
-  currentLevel = level;
-  const placeholder = document.getElementById('content-placeholder');
-  const topicContentArea = document.getElementById('topic-content-area');
+    currentLevel = level;
+    const placeholder = document.getElementById('content-placeholder');
+    const topicContentArea = document.getElementById('topic-content-area');
 
-  topicContentArea.classList.add('hidden');
-  placeholder.classList.remove('hidden');
-  placeholder.innerHTML = `
-    <div class="text-5xl mb-4 opacity-20">◢◤</div>
-    <p class="text-gray-500 font-mono text-lg">ESTABLISHING UPLINK...</p>
-  `;
-
-  // Update active tab
-  document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active-tab'));
-  document.getElementById(`tab-${level}`).classList.add('active-tab');
-
-  // Clear module nav
-  document.getElementById('module-nav-container').innerHTML = '';
-
-  try {
-    const res = await fetch(`/.netlify/functions/slides?level=${level}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    DATABASE = await res.json();
-    buildNav();
+    topicContentArea.classList.add('hidden');
+    placeholder.classList.remove('hidden');
     placeholder.innerHTML = `
-      <div class="text-5xl mb-4 opacity-20">◢◤</div>
-      <p class="text-gray-500 font-mono text-lg">UPLINK ESTABLISHED. SELECT MODULE ABOVE.</p>
+        <div class="text-5xl mb-4 opacity-20">◢◤</div>
+        <p class="text-gray-500 font-mono text-lg">ESTABLISHING UPLINK...</p>
     `;
-  } catch (err) {
-    placeholder.innerHTML = `
-      <div class="text-5xl mb-4 opacity-20">⚠</div>
-      <p class="text-red-500 font-mono text-lg">DATABASE ERROR: ${err.message}</p>
-    `;
-  }
-}
+
+    document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active-tab'));
+    document.getElementById(`tab-${level}`).classList.add('active-tab');
+    document.getElementById('module-nav-container').innerHTML = '';
+
+    try {
+        const res = await fetch(`/.netlify/functions/slides?level=${level}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        DATABASE = await res.json();
+        buildNav();
+        placeholder.innerHTML = `
+            <div class="text-5xl mb-4 opacity-20">◢◤</div>
+            <p class="text-gray-500 font-mono text-lg">UPLINK ESTABLISHED. SELECT MODULE ABOVE.</p>
+        `;
+    } catch (err) {
+        placeholder.innerHTML = `
+            <div class="text-5xl mb-4 opacity-20">⚠</div>
+            <p class="text-red-500 font-mono text-lg">DATABASE ERROR: ${err.message}</p>
+        `;
+    }
+};
 
 window.buildNav = function() {
-  const navContainer = document.getElementById('module-nav-container');
-  navContainer.innerHTML = '';
-  Object.keys(DATABASE).forEach(key => {
-    const card = document.createElement('div');
-    card.className = 'topic-card px-4 py-3 rounded-sm font-bold text-sm tracking-widest uppercase border border-gray-800 flex items-center justify-center';
-    card.innerHTML = `<span class="opacity-50 mr-2 text-xs">◢</span> ${key}`;
-    card.setAttribute('data-key', key);
-    card.addEventListener('click', () => {
-      playClickSound();
-      document.querySelectorAll('.topic-card').forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-      revealContent(key);
+    const navContainer = document.getElementById('module-nav-container');
+    navContainer.innerHTML = '';
+    Object.keys(DATABASE).forEach(key => {
+        const card = document.createElement('div');
+        card.className = 'topic-card px-4 py-3 rounded-sm font-bold text-sm tracking-widest uppercase border border-gray-800 flex items-center justify-center';
+        card.innerHTML = `<span class="opacity-50 mr-2 text-xs">◢</span> ${key}`;
+        card.setAttribute('data-key', key);
+        card.addEventListener('click', () => {
+            playClickSound();
+            document.querySelectorAll('.topic-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            revealContent(key);
+        });
+        navContainer.appendChild(card);
     });
-    navContainer.appendChild(card);
-  });
-}
+};
 
-// Keep your existing revealContent and createSlideEmbed functions exactly as they are
 window.revealContent = function(topicKey) {
     const data = DATABASE[topicKey];
     if (!data) return;
@@ -390,10 +401,12 @@ window.revealContent = function(topicKey) {
         `;
     }
     topicContentArea.innerHTML = html;
-}
+};
+
 window.closeQuestions = function() {
     document.getElementById('question-modal').classList.add('hidden');
-}
+};
+
 // --- SEARCH ---
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
@@ -407,8 +420,7 @@ function buildSearchIndex() {
                     name: item.name,
                     section: section,
                     module: moduleKey,
-                    link: item.link,
-                    level: currentLevel
+                    link: item.link
                 });
             }
         }
@@ -418,7 +430,6 @@ function buildSearchIndex() {
 
 searchInput.addEventListener('input', () => {
     const query = searchInput.value.trim().toLowerCase();
-    console.log('typing:', query, 'DB size:', Object.keys(DATABASE).length);
     searchResults.innerHTML = '';
 
     if (query.length < 2) {
@@ -427,25 +438,17 @@ searchInput.addEventListener('input', () => {
     }
 
     const index = buildSearchIndex();
-const matches = index.filter(item =>
-    item.name.toLowerCase().includes(query) || item.module.toLowerCase().includes(query)
-);
     const matches = index.filter(item =>
-    item.level === currentLevel &&
-    (item.name.toLowerCase().includes(query) || item.module.toLowerCase().includes(query))
-);
-console.log('index size:', index.length, 'matches:', matches.length);
+        item.name.toLowerCase().includes(query) || item.module.toLowerCase().includes(query)
+    );
 
     if (matches.length === 0) {
         searchResults.innerHTML = `<div class="search-result-item"><span class="result-name text-gray-500">No results found</span></div>`;
         searchResults.style.display = 'block';
         return;
     }
-console.log('results display:', searchResults.style.display, searchResults.offsetParent);
+
     matches.slice(0, 8).forEach(item => {
-        searchResults.style.display = 'block';
-searchResults.style.visibility = 'visible';
-searchResults.style.opacity = '1';
         const div = document.createElement('div');
         div.className = 'search-result-item';
         div.innerHTML = `
@@ -456,13 +459,7 @@ searchResults.style.opacity = '1';
             playClickSound();
             searchResults.style.display = 'none';
             searchInput.value = '';
-
-            // Switch level if needed
-            if (item.level !== currentLevel) {
-                loadSlides(item.level).then(() => openSlideFromSearch(item));
-            } else {
-                openSlideFromSearch(item);
-            }
+            openSlideFromSearch(item);
         });
         searchResults.appendChild(div);
     });
@@ -471,7 +468,6 @@ searchResults.style.opacity = '1';
 });
 
 function openSlideFromSearch(item) {
-    // Activate the correct module tab
     document.querySelectorAll('.topic-card').forEach(c => {
         c.classList.remove('active');
         if (c.getAttribute('data-key') === item.module) {
@@ -480,7 +476,6 @@ function openSlideFromSearch(item) {
     });
     revealContent(item.module);
 
-    // Scroll to the matching slide
     setTimeout(() => {
         const allTitles = document.querySelectorAll('#topic-content-area a');
         for (const el of allTitles) {
@@ -494,31 +489,13 @@ function openSlideFromSearch(item) {
     }, 300);
 }
 
-// Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
         searchResults.style.display = 'none';
     }
 });
+
 loadSlides('gcse');
-    // Embed Creator
-    const createSlideEmbed = (url, name) => {
-        const embedUrl = url.includes('/pub') ? url.replace('/pub', '/embed') : url;
-        const safeName = name.replace(/'/g, "\\'");
-        
-        return `
-            <div class="group flex flex-col h-full bg-[#111] border border-[#333] hover:border-red-500 transition-all duration-300 shadow-lg">
-                <div class="p-3 border-b border-[#222]">
-                     <a href="${url}" target="_blank" class="text-xs text-cyan-500 font-orbitron font-bold tracking-wider truncate hover:underline hover:text-white transition-colors block" title="OPEN FULLSCREEN">
-                   ${name.toUpperCase()} ↗
-                </a>
-                </div>
-                <div class="slide-embed-container bg-black">
-                    <iframe src="${embedUrl}" frameborder="0" loading="lazy" allowfullscreen="true"></iframe>
-                </div>
-            </div>
-        `;
-    };
 </script>
 </body>
 </html>
