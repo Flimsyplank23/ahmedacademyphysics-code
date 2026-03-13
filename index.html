@@ -424,7 +424,10 @@ searchInput.addEventListener('input', () => {
     }
 
     const index = buildSearchIndex();
-    const matches = index.filter(item => item.name.toLowerCase().includes(query));
+    const matches = index.filter(item =>
+    item.level === currentLevel &&
+    (item.name.toLowerCase().includes(query) || item.module.toLowerCase().includes(query))
+);
 console.log('index size:', index.length, 'matches:', matches.length);
 
     if (matches.length === 0) {
